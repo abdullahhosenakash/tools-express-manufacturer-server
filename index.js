@@ -23,6 +23,11 @@ async function run() {
         const orderCollection = client.db('toolsExpress').collection('orders');
         const userCollection = client.db('toolsExpress').collection('users');
 
+        app.get('/tools', async (req, res) => {
+            const query = {};
+            const result = await toolsCollection.find(query).toArray();
+            res.send(result);
+        });
 
     }
     finally {
