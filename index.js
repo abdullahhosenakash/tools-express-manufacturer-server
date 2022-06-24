@@ -67,6 +67,59 @@ async function run() {
             }
         });
 
+        app.get('/users', verifyJWT, async (req, res) => {
+            const query = {};
+            const result = await userCollection.find(query).toArray();
+            res.send(result);
+        });
+
+
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await userCollection.insertOne(user);
+            res.send(result);
+        });
+
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { userEmail: email };
+            const options = { upsert: true };
+            const updatedUser = {
+                $set: { userEmail: email }
+            }
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+            const result = await userCollection.updateOne(filter, updatedUser, options);
+            res.send({ result, token });
+        });
+
+        app.put('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const userInfo = req.body;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            let updatedUser;
+            if (userInfo.role) {
+                updatedUser = {
+                    $set: {
+                        role: userInfo.role
+                    }
+                }
+            }
+            else {
+                updatedUser = {
+                    $set: {
+                        location: userInfo.location,
+                        linkedIn: userInfo.linkedIn,
+                        education: userInfo.education,
+                        phone: userInfo.phone
+                    }
+                }
+            }
+            const result = await userCollection.updateOne(filter, updatedUser, options);
+            res.send(result);
+        });
+
     }
     finally {
 
