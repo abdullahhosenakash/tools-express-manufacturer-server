@@ -29,6 +29,12 @@ async function run() {
             res.send(result);
         });
 
+        app.get('/reviews', async (req, res) => {
+            const query = {};
+            const result = await reviewCollection.find(query).sort({ _id: -1 }).toArray();
+            res.send(result);
+        });
+
     }
     finally {
 
