@@ -73,6 +73,37 @@ async function run() {
             res.send(result);
         });
 
+        app.post('/create-payment-intents', async (req, res) => {
+            const { totalPrice } = req.body;
+            const amount = totalPrice * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+            res.send({ clientSecret: paymentIntent.client_secret });
+        });
+
+        app.post('/orders', async (req, res) => {
+            const order = req.body;
+            const result = await orderCollection.insertOne(order);
+            res.send(result);
+        });
+
+        app.put('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const order = req.body;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updatedOrder = {
+                $set: {
+                    paymentStatus: order.paymentStatus,
+                    shippingStatus: order.shippingStatus
+                }
+            }
+            const result = await orderCollection.updateOne(filter, updatedOrder, options);
+            res.send(result);
+        });
 
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -91,6 +122,32 @@ async function run() {
             const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
             const result = await userCollection.updateOne(filter, updatedUser, options);
             res.send({ result, token });
+        });
+
+        app.post('/reviews', async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
+            res.send(result);
+        });
+
+        app.post('/tools', async (req, res) => {
+            const tool = req.body;
+            const result = await toolsCollection.insertOne(tool);
+            res.send(result);
+        });
+
+        app.delete('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await orderCollection.deleteOne(query);
+            res.send(result);
+        });
+
+        app.delete('/tools/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await toolsCollection.deleteOne(query);
+            res.send(result);
         });
 
         app.put('/users/:id', async (req, res) => {
@@ -119,7 +176,6 @@ async function run() {
             const result = await userCollection.updateOne(filter, updatedUser, options);
             res.send(result);
         });
-
     }
     finally {
 
@@ -134,4 +190,3 @@ app.get('/', async (req, res) => {
 app.listen(port, () => {
     console.log("Pip Pip, Tools express running on it's track", port);
 });
-
