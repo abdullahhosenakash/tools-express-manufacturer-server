@@ -35,6 +35,7 @@ function verifyJWT(req, res, next) {
 async function run() {
   try {
     await client.connect();
+    console.log('connected');
     const toolsCollection = client.db('toolsExpress').collection('tools');
     const reviewCollection = client.db('toolsExpress').collection('reviews');
     const orderCollection = client.db('toolsExpress').collection('orders');
@@ -209,3 +210,5 @@ app.get('/', async (req, res) => {
 app.listen(port, () => {
   console.log("Pip Pip, Tools express running on it's track", port);
 });
+
+module.exports = app;
